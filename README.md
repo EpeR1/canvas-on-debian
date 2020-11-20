@@ -501,8 +501,13 @@ Note: The bytestring should match on both side:
     ECOSYSTEM_SECRET = signing-secret
     ECOSYSTEM_KEY = encryption-secret
 
-    
-    
+## Set The Rights
+
+    root@server:/$  chown -R root:root /var/canvas-rce-api
+    root@server:/$  chown www-canvas /var/canvas-rce-api/.env
+    root@server:/$  chmod 400 /var/canvas-rce-api/.env  
+
+
 ## RUNNING
 
 Run the node application in the background:  
