@@ -349,76 +349,6 @@ And finally, if you created this as its own file inside /etc/apache2/sites-avail
     root@server:/$ sudo a2ensite canvas
 
     
-    
-## Optimizing File Downloads
-
-If you are storing uploaded files locally, rather than in S3, you can optimize the downloading of files using the X-Sendfile header (X-Accel-Redirect in nginx). First make sure that apache has mod_xsendfile installed and enabled. For UBUNTU this can be done by following command:
-
-    sysadmin@appserver:/var/canvas$ sudo apt-get install libapache2-mod-xsendfile
-
-This command installs and enables module. To ensure about properly running module you can use:
-
-    sysadmin@appserver:/var/canvas$ sudo apachectl -M | sort
-
-Module xsendfile_module (shared) should be in the list.
-
-In `config/environments/production.rb` you'll find the necessary `config.action_dispatch.x_sendfile_header` line, but commented out. We recommend that you create a `config/environments/production-local.rb` file and add the uncommented line to that file, to avoid future merge conflicts.
-
-In your canvas virtual host at `/etc/apache2/sites-available/canvas.conf` , add the following two directives:
-
-    XSendFile On
-    XSendFilePath /var/canvas
-    
-### NOTE  
-
-If your server runs more other websites, **check carefully the effect of xsendfile** for the other services! Because, sometimes, other Cloud web services does not accepts the xsendfile module enabled.  
-    
-    
-## Cache configuration
-
-Canvas supports two different methods of caching: Memcache and redis. However, there are some features of Canvas that require redis to use, such as OAuth2, so it's recommended that you use redis for caching as well to keep things simple.  
-
-Below are instructions for setting up redis.  
-[Canvas Wiki](https://github.com/instructure/canvas-lms/wiki/Production-Start)
-
-
-
-
-
-
-
-
-
-
-
-## QTIMigrationTool
-
-The QTIMigrationTool needs to be installed to enable copying or importing quiz content. Instructions are at https://github.com/instructure/QTIMigrationTool/wiki. After installation, ensure the plugin is active in Site Admin -> Plugins -> QTI Converter (it should detect the QTIMigrationTool and auto-activate).
-
-### INSTALL  
-
-First check if, python 2.x is installed:  
-
-    root@server:/$  python --version  
-
-The **python-lxml** package is needed:  
-
-    root@server:/$  apt-get install python-lxml  
-
-Then clone the git repo, copy or move files, set the permissions, etc.  
-
-    root@server:/$  cd /var/canvas/vendor
-    root@server:/$  git clone https://github.com/instructure/QTIMigrationTool.git QTIMigrationTool
-    root@server:/$  chown -R root:root QTIMigrationTool/
-    root@server:/$  cd QTIMigrationTool && chmod +x migrate.py
-    
-Finally: restart the background job manager with:
-    
-    root@server:/$  /etc/init.d/canvas_init restart
-
-
-
-
 
 
 ## Automated jobs
@@ -455,7 +385,66 @@ to:
 
 
 
+    
+## Optimizing File Downloads
 
+If you are storing uploaded files locally, rather than in S3, you can optimize the downloading of files using the X-Sendfile header (X-Accel-Redirect in nginx). First make sure that apache has mod_xsendfile installed and enabled. For UBUNTU this can be done by following command:
+
+    sysadmin@appserver:/var/canvas$ sudo apt-get install libapache2-mod-xsendfile
+
+This command installs and enables module. To ensure about properly running module you can use:
+
+    sysadmin@appserver:/var/canvas$ sudo apachectl -M | sort
+
+Module xsendfile_module (shared) should be in the list.
+
+In `config/environments/production.rb` you'll find the necessary `config.action_dispatch.x_sendfile_header` line, but commented out. We recommend that you create a `config/environments/production-local.rb` file and add the uncommented line to that file, to avoid future merge conflicts.
+
+In your canvas virtual host at `/etc/apache2/sites-available/canvas.conf` , add the following two directives:
+
+    XSendFile On
+    XSendFilePath /var/canvas
+    
+### NOTE  
+
+If your server runs more other websites, **check carefully the effect of xsendfile** for the other services! Because, sometimes, other Cloud web services does not accepts the xsendfile module enabled.  
+    
+    
+## Cache configuration
+
+Canvas supports two different methods of caching: Memcache and redis. However, there are some features of Canvas that require redis to use, such as OAuth2, so it's recommended that you use redis for caching as well to keep things simple.  
+
+Below are instructions for setting up redis.  
+[Canvas Wiki](https://github.com/instructure/canvas-lms/wiki/Production-Start)
+
+
+
+
+
+## QTIMigrationTool
+
+The QTIMigrationTool needs to be installed to enable copying or importing quiz content. Instructions are at https://github.com/instructure/QTIMigrationTool/wiki. After installation, ensure the plugin is active in Site Admin -> Plugins -> QTI Converter (it should detect the QTIMigrationTool and auto-activate).
+
+### INSTALL  
+
+First check if, python 2.x is installed:  
+
+    root@server:/$  python --version  
+
+The **python-lxml** package is needed:  
+
+    root@server:/$  apt-get install python-lxml  
+
+Then clone the git repo, copy or move files, set the permissions, etc.  
+
+    root@server:/$  cd /var/canvas/vendor
+    root@server:/$  git clone https://github.com/instructure/QTIMigrationTool.git QTIMigrationTool
+    root@server:/$  chown -R root:root QTIMigrationTool/
+    root@server:/$  cd QTIMigrationTool && chmod +x migrate.py
+    
+Finally: restart the background job manager with:
+    
+    root@server:/$  /etc/init.d/canvas_init restart
 
 
 
