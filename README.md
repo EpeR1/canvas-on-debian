@@ -4,7 +4,9 @@
 
 See Wiki pages:
 
-[Canvas LMS](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS)
-[Rich Content Editor](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS-QTI-Migration-Tool)
-[QTI Migration Tool](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS-Rich-Content-Editor)
+[Canvas LMS](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS)  
+
+[Rich Content Editor](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS-QTI-Migration-Tool)  
+
+[QTI Migration Tool](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS-Rich-Content-Editor)  
 
