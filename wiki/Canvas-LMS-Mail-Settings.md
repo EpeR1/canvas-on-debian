@@ -51,7 +51,7 @@ For **SMTP over STARTTLS:**
 
 ## NOTE
 
-On the **Site Admin** Settings, set, the **Course level overrides for notification preferences [hidden]** feature to **OFF** !
+On the **Site Admin** Settings, set, the **Use remote service for notifications [hidden]** feature to **OFF** !
 
 More info about Rails Action Mailer are [here](https://guides.rubyonrails.org/action_mailer_basics.html)
 
