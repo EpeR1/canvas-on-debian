@@ -93,7 +93,7 @@ For **POP3**
 If your server are running a Postfix service along with Canvas instance, you can choose the **file source**, for incoming, and the **Sendmail** for outgoing mail service, when your Postfix is configured with `home_mailbox = mail/` maildir storage format.
 
 ## NOTE 2
-Don't forget to **restart** the **Apache2 Passenger** and the **Canvas Background Job** service, after the config modification!ű
+Don't forget to **restart** the **Apache2 Passenger** and the **Canvas Background Job** service, after the config modification!
 
     /etc/init.d/apache2 restart 
     /etc/init.d/canvas_init stop 
