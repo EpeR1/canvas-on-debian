@@ -1,16 +1,17 @@
-### This is an unofficially upgraded installation guide for [Canvas LMS](https://github.com/instructure/canvas-lms), on [Debian 10](https://www.debian.org/News/2019/20190706).   
+### This is an unofficially upgraded [installation guide](https://github.com/instructure/canvas-lms/wiki/Production-Start) for [Canvas LMS](https://github.com/instructure/canvas-lms), on [Debian 10](https://www.debian.org/News/2019/20190706).   
 
 ## Hardware
 
 Canvas requires ~8.2GB of RAM during building, and the Linux kernel uses ~2GB RAM.  
-Canvas's modules are consuming at least 4GB of HDD.  
-The absolute minimum hardware requirements is: **10GB RAM** and **6GB** free space on HDD! (Really!)  
+Canvas's modules are consuming at least 10GB of HDD.  
+The absolute minimum hardware requirements is: **10GB RAM** and **12GB** free space on HDD! (Really!)  
 (And a Multi-Core CPU is beneficial)
 
 ## Canvas User
 
-Set up or choose a user you want the Canvas Rails application to run as. This can be the same user as your webserver (www-data on Debian/Ubuntu), your personal user account, or something else. Once you've chosen or created a new user, you need to change the ownership of key files in your application root to that user.  
+Set up or choose a user you want the Canvas Rails application to run as. This can be the same user as your webserver (*www-data* on *Debian/Ubuntu*), your personal user account, or something else. Once you've chosen or created a new user, you need to change the ownership of key files in your application root to that user.  
 
+The following example will create a system user for canvas:  
     
     root@server:/$ useradd -p "*"  -m --home "/var/canvas" --shell "/bin/bash" --system "www-canvas" 
     root@server:/$ chage --mindays 0 --maxdays 99999 --warndays 7 "www-canvas"
@@ -19,13 +20,22 @@ Set up or choose a user you want the Canvas Rails application to run as. This ca
 
 ## Dependency Installation (Debian 10+)
 
-Canvas now requires Ruby, Postgresql, Apache2, etc...  
+Canvas requires Ruby, Postgresql, Apache2, etc...  
 
     root@server:/$ apt update
-    root@server:/$ apt install ruby ruby-dev zlib1g-dev libxml2-dev \
+    root@server:/$ apt install zlib1g-dev libxml2-dev \
             libsqlite3-dev postgresql libpq-dev \
             libxmlsec1-dev curl make g++ python \
             git gnupg sudo
+
+Previous version of Canvas used *ruby 2.5* which is part of *Debian 10*, but from *Sep. 2020*, **ruby 2.6** is required:
+
+    root@server:/$ apt-get install software-properties-common
+    root@server:/$ add-apt-repository ppa:brightbox/ruby-ng
+    root@server:/$ apt-get update
+     
+    root@server:/$ apt install ruby2.6 ruby2.6-dev 
+
 
 Nodejs 10.x is required, and also available in Debian 10+  
 
@@ -36,16 +46,19 @@ Nodejs 10.x is required, and also available in Debian 10+
 
 Canvas now prefers yarn instead of npm.  
 
-* **Note #1:** As of 15Sep2018, the required yarn version is 1.10.1, specifically `sudo apt-get install yarn=1.10.1-1` )  
-* **Note #2:** Since Yarn v1.22.5, `yarnpkg` is part of Yarn, but requires nodejs10+, which is available in Debian10+, so you don't need to install nodejs from external source!  
+* **Note #1:** As of *Sep. 15, 2018*, the required yarn version is 1.10.1, specifically: `sudo apt-get install yarn=1.10.1-1` )  
+* **Note #2:** Since Yarn v1.22.5, `yarnpkg` is part of Yarn, but requires *nodejs 10+*, which is available in *Debian 10+*, so you don't need to install *nodejs* from external source!  
 
       root@server:/$ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
       root@server:/$ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
       root@server:/$ sudo apt update && sudo apt install yarn
  
- (If Canvas's folder is available now you can install the node modules also:)  
+ * **Note #3:** If Canvas's folder is available already, you can install the node modules also:  
+ (but not required at this point)
 
-    root@server:/var/canvas$ yarn install
+       root@server:/$ cd /var/canvas  
+       root@server:/var/canvas$ yarn install  
+
     
 More info: [Yarn Classic installation](https://classic.yarnpkg.com/en/docs/install/#debian-stable)  
     
@@ -53,15 +66,17 @@ More info: [Yarn Classic installation](https://classic.yarnpkg.com/en/docs/insta
 
 ## Configuring Postgres
 
-After installing Postgres, you will need to set your system username as a postgres superuser. You can do so by running the following commands:  
+After installing Postgres, you will need to set your system username as a postgres superuser.  
+You can do so by running the following commands:  
 
     root@server:/$ sudo -u postgres createuser $USER
     root@server:/$ sudo -u postgres psql -c "alter user $USER with superuser" postgres
 
 
-You'll want to set up a Canvas user inside of Postgres. Note that in the below commands, you'll want to replace localhost with the hostname of the server Canvas is running on, if Canvas is running on a different server than Postgres.  
+You will need to set up a Canvas user inside of Postgres.  
+**Note:**  In the commands below, you'll need to replace **localhost** with the hostname of the server where Canvas is running on, if Canvas is running on a different server from Postgres.  
 
-    # createuser will prompt you for a password for database user
+    # createuser will prompt you for a password for database user:
     root@server:/$ sudo -u postgres createuser canvas --no-createdb \
                           --no-superuser --no-createrole --pwprompt
     root@server:/$ sudo -u postgres createdb canvas_production --owner=canvas
@@ -71,8 +86,8 @@ You'll want to set up a Canvas user inside of Postgres. Note that in the below c
     
 ## Getting the code
 
-The Canvas's code location, where it will run from, in this example will be: `/var/canvas`, but you can choose something else.  
-We'll be referring to `/var/canvas` (or whatever you chose) as your Rails application root.  
+The Canvas code location, (where it will run from) in this example will be: **`/var/canvas`**, but you can choose something else.  
+We'll be referring to **`/var/canvas`** (or whatever you chose) as Rails application root!  
 
 ### Using Git
 
@@ -87,16 +102,18 @@ Once you have a copy of Git installed on your system, getting the latest source 
 ## Dependency Installation  
 
 ### Ruby Gems
-Most of Canvas' dependencies are Ruby Gems. Ruby Gems are a Ruby-specific package management system that operates orthogonally to operating-system package management systems.
+Most of Canvas' dependencies are Ruby Gems.  
+Ruby Gems are a Ruby-specific package management system that operates orthogonally to operating-system package management systems.
 
 ### Bundler and Canvas dependencies
 
-Canvas uses Bundler as an additional layer on top of Ruby Gems to manage versioned dependencies. Bundler is great!
+Canvas uses Bundler as an additional layer on top of Ruby Gems to manage versioned dependencies.
 
-    root@server:/var/canvas$  sudo gem install bundler --version 1.13.6
-    root@server:/var/canvas$  bundle _1.13.6_ install --path vendor/bundle
+Previous version of Canvas usesd *bundler 1.13.6*, but, from *Sep. 2020* Canvas requires **bundler 2.1.4**:  
 
-    
+    root@server:/var/canvas$  sudo gem install bundler --version 2.1.4
+    root@server:/var/canvas$  bundle _2.1.4_ install --path vendor/bundle
+  
 ### Yarn  
 
 Then install the node modules:  
@@ -106,6 +123,7 @@ Then install the node modules:
 
     
     
+
     
 ## Canvas default configuration
 
@@ -122,6 +140,10 @@ This config file is useful if you don't want to run a consul cluster with canvas
     root@server:/var/canvas$  cp config/dynamic_settings.yml.example config/dynamic_settings.yml
     root@server:/var/canvas$  nano config/dynamic_settings.yml
 
+On Rich Content Editor settings, you can find more information [here](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS-Rich-Content-Editor).
+
+
+
 ### Database configuration
 
 Now we need to set up your database configuration to point to your Postgres server and your production databases. Open the file *config/database.yml*, and find the **production** environment section. You can open this file with an editor like this:
@@ -131,6 +153,8 @@ Now we need to set up your database configuration to point to your Postgres serv
 
 Update this section to reflect your Postgres server's location and authentication credentials. This is the place you will put the password and database name, along with anything else you set up, from the Postgres setup steps.
 
+
+
 ### Outgoing mail configuration
 
 For Canvas to work properly, you need an outgoing SMTP mail server. All you need to do is get valid outgoing SMTP settings. Open config/outgoing_mail.yml:
@@ -138,9 +162,16 @@ For Canvas to work properly, you need an outgoing SMTP mail server. All you need
     root@server:/var/canvas$  cp config/outgoing_mail.yml.example config/outgoing_mail.yml
     root@server:/var/canvas$  nano config/outgoing_mail.yml
 
-Find the **production** section and configure it to match your SMTP provider's settings. Note that the *domain* and *outgoing_address* fields are not for SMTP, but are for Canvas. *domain* is required, and is the domain name that outgoing emails are expected to come from. *outgoing_address* is optional, and if provided, will show up as the address in the *From* field of emails Canvas sends.
+* Find the **production** section and configure it to match your SMTP provider's settings.  
+* **Note:** That the *domain* and *outgoing_address* fields are not for SMTP, but are for Canvas.  
+ *domain* is required, and is the domain name that outgoing emails are expected to come from.  
+ *outgoing_address* is optional, and if provided, will show up as the address in the *From* field of emails Canvas sends.
 
-If you don't want to use authentication, simply comment out the lines for *user_name*, *password*, and *authentication*.
+* If you don't want to use authentication, simply comment out the lines for *user_name*, *password*, and *authentication*.
+
+* More details of the mail configuration are [here](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS-Mail-Settings).
+
+
 
 
 ### URL configuration
@@ -150,7 +181,9 @@ In many notification emails, and other events that aren't triggered by a web req
     root@server:/var/canvas$  cp config/domain.yml.example config/domain.yml
     root@server:/var/canvas$  nano config/domain.yml
 
-Note that the optional files_domain field is required if you plan to host user-uploaded files and wish to be secure, or if you want to allow custom Javascript in custom themes. files_domain must be a different hostname from the browser's perspective, even though it can be the same Apache server, and even the same IP address.
+**Note:** The optional *files_domain* field is required if you plan to host user-uploaded files and wish to be secure, or if you want to allow custom Javascript in custom themes. *files_domain* must be a different hostname from the browser's perspective, even though it can be the same Apache server, and even the same IP address.
+
+
 
 ### Security configuration
 
@@ -160,6 +193,11 @@ You must insert randomized strings of at least 20 characters in this file:
     root@server:/var/canvas$  nano config/security.yml
 
     
+## Live Configuration Update
+
+**Note:** If you are changing these settings on a live system, **Don't forget to restart** *Apache2 passenger* application, and the Canvas *background job manager* also!
+
+
     
     
 ## Generate Assets
@@ -207,7 +245,7 @@ Note that this initial setup will interactively prompt you to create an administ
 
 
 ## Canvas ownership
-### Making sure Canvas can't write to more things than it should.
+### Making sure Canvas can't write to more things than it should!
 
     root@server:/$  chown -R root:root /var/canvas
     root@server:/$  cd /var/canvas
@@ -228,6 +266,7 @@ Note that once you change these settings, to modify the configuration files henc
 ## Making sure to use the "most restrictive" permissions
 
 Passenger will choose the user to run the application based on the **ownership** settings of `config/environment.rb` (you can view the ownership settings via the ls -l command). Note that it is probably wise to ensure that the ownership settings of all other files besides the ones with permissions set just above are restrictive, and only allow your canvasuser user account to read the rest of the files.
+
 
 
 ## Apache configuration
@@ -269,7 +308,7 @@ Next, we need to make sure your Apache configuration supports SSL. Debian/Ubuntu
 
     root@server:/$  a2enmod  ssl
 
- You can use **Let's Encrypt** with Apache2 (**mod_md**)
+ You can use **Let's Encrypt** with Apache2 [**mod_md**](http://www.ins.nat.tn/manual/en/mod/mod_md.html)
     
 
     
@@ -282,6 +321,17 @@ Now, we need to make a VirtualHost for your app. On Debian/Ubuntu, we are going 
 
 In the new file, or new spot, depending, you want to place the following snippet. You will want to modify the lines designated ServerName(2), ServerAdmin(2), DocumentRoot(2), SetEnv(2), Directory(2), and probably SSLCertificateFile(1) and SSLCertificateKeyFile(1), discussed below in the "Note about SSL Certificates".
 
+     #If you want to start Canvas appllication automatically by Apache2, use the following:
+     
+     <IfModule mod_passenger.c>
+        PassengerPreStart https://canvas.example.com/
+        PassengerPreStart https://rce.canvas.example.com/api
+    </IfModule>
+    
+    
+        
+    #On http (port 80) we are using a single redirection to https. 
+
     <VirtualHost *:80>
       ServerName canvas.example.com
       ServerAlias rce.canvas.example.com canvasfiles.example.com
@@ -290,23 +340,26 @@ In the new file, or new spot, depending, you want to place the following snippet
       DocumentRoot /var/www/html
       
       RewriteEngine On
-      RewriteCond %{HTTPS} off
-      RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+      RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+      RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L]
       
         ErrorLog ${APACHE_LOG_DIR}/canvas_error.log
         LogLevel warn
         CustomLog ${APACHE_LOG_DIR}/canvas_access.log combined
     </VirtualHost>
     
-    
-        
+       
+     
+            
     <VirtualHost *:443>
       ServerName canvas.example.com
       ServerAlias canvasfiles.example.com
       ServerAdmin youremail@example.com
       
       DocumentRoot /var/canvas/public
-      
+
+    #If Passenger doesn't recognise the credentials correctly, configure as below:
+
       PassengerUser www-canvas
     #  SetEnv RAILS_ENV production
       PassengerAppEnv production
@@ -366,12 +419,13 @@ If you're on Debian/Ubuntu, you can install this daemon process very easily, fir
     root@server:/$  update-rc.d canvas_init defaults
     root@server:/$  /etc/init.d/canvas_init start
  
- OR on systemd:  
+ **On systemd:**  
+
     root@server:/$ systemctl start canvas_init 
 
 ### NOTE:  
-On Debian10 systems, the canvas_init start is may failing, if the `www-canvas` UID is less than 1000 (if it is a system user), due to the missing shell environment.  
-So you need to edit the init script, and add the following manually:  
+On Debian systems, the canvas_init start is may failing, if the `www-canvas` shell is `/bin/true`, or if is a system user, 
+In this case, you'll need to edit the init script, and add the following manually:  
 
 change the row:   
 `exec su $(stat -c %U $(dirname $(readlink -f $0))/../config/environment.rb) -c "/bin/bash $0 $@"`  
@@ -405,7 +459,7 @@ In your canvas virtual host at `/etc/apache2/sites-available/canvas.conf` , add 
     
 ### NOTE  
 
-If your server runs more other websites, **check carefully the effect of xsendfile** for the other services! Because, sometimes, other Cloud web services does not accepts the xsendfile module enabled.  
+If your server are running more, other websites, **check carefully the effect of xsendfile** for the other services! Because, other Cloud web services may not accepts the xsendfile module enabled.  
     
     
 ## Cache configuration
@@ -415,8 +469,10 @@ Canvas supports two different methods of caching: Memcache and redis. However, t
 Below are instructions for setting up redis.  
 [Canvas Wiki](https://github.com/instructure/canvas-lms/wiki/Production-Start)
 
-
-
+## Log files
+Canvas produces logs under the `/var/canvas/log` folder.
+By default, the loglevel is **debug**, so this folder can grow to very large (in 1-10GB/day steps), so you'll may need a log-rotation script setting up.  
+More about log-rotation [here](https://www.tecmint.com/install-logrotate-to-manage-log-rotation-in-linux/)
 
 
 ## Ready, set, go!
@@ -431,6 +487,12 @@ There are many other aspects of Canvas that you can now configure, having a work
 
 
 
-### list installed NPM modules
-    npm list
-    npm -g list
+
+
+
+# QTIMigrationTool
+
+More info [here](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS-QTI-Migration-Tool)
+
+# Rich Content Editor
+More info [here](https://github.com/EpeR1/canvas-on-debian/wiki/Canvas-LMS-Rich-Content-Editor)

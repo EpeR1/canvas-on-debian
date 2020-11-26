@@ -59,7 +59,7 @@ Note: The bytestring should match on both side:
     root@server:/$  chmod 400 /var/canvas-rce-api/.env  
 
 
-## RUNNING
+## RUNNING 1.
 
 Run the node application in the background:  
 NOTE: The instance **Should Not Run with root privileges!**
@@ -79,7 +79,7 @@ Enable the apache2 proxy modules, and restart the webserver:
     
     
     
-## RUNNING (A Better Alternative)
+## RUNNING 2. (Better Alternative)
 
 If you have a "single-server" environment, you can run the [RCE API](https://github.com/instructure/canvas-rce-api), and the [Canvas LMS](https://github.com/instructure/canvas-lms) together on the same apache2 server.
 
