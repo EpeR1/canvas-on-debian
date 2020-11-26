@@ -47,9 +47,15 @@ For **SMTP over STARTTLS:**
       outgoing_address: "canvas@canvas.example.com"
       default_name: "Your Canvas Application"
 
+
+
+## NOTE
+
+On the **Site Admin** Settings, set, the **Course level overrides for notification preferences [hidden]** feature to **OFF** !
+
 More info about Rails Action Mailer are [here](https://guides.rubyonrails.org/action_mailer_basics.html)
 
-
+---------------------------------------------
 # Incoming Mail 
 
 Outgoing mail settings are in the `/var/canvas/config/incoming_mail.yml`, (where the /var/canvas is your canvas-root)  
